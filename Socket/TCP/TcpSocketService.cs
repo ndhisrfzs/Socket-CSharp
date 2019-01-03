@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace GameSocket.TCP
 {
-    public class TcpService : ISocketService
+    public class TcpSocketService : ISocketService
     {
         private const int MAX_SOCKETS = 1 << 16;
 
@@ -19,7 +19,7 @@ namespace GameSocket.TCP
 
         private int isDisposed = 0;
 
-        public TcpService(IPEndPoint ipEndPoint, Action<ISocketClient> acceptCallback)
+        public TcpSocketService(IPEndPoint ipEndPoint, Action<ISocketClient> acceptCallback)
         {
             this.acceptCallback += acceptCallback;
 

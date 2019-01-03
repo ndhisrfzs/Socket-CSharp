@@ -9,7 +9,7 @@ namespace GameSocket
     {
         private static readonly ConcurrentQueue<byte[]> bufferCache = new ConcurrentQueue<byte[]>();
 
-        private const int CHUNK_SIZE = 8192;
+        public const int CHUNK_SIZE = 8192;
         private readonly Queue<byte[]> bufferQueue = new Queue<byte[]>();
 
         public int LastIndex { get; set; }
@@ -120,9 +120,35 @@ namespace GameSocket
             return count;
         }
 
+        object writeLock = new object();
         public override void Write(byte[] buffer, int offset, int count)
         {
-            throw new NotImplementedException();
+            lock(writeLock)
+            {
+                int alreadyCopyCount = 0;
+                while (alreadyCopyCount < count)
+                {
+                    if (this.LastIndex == CHUNK_SIZE)
+                    {
+                        AddLast();
+                        this.LastIndex = 0;
+                    }
+
+                    int n = count - alreadyCopyCount;
+                    if (CHUNK_SIZE - this.LastIndex > n)
+                    {
+                        Buffer.BlockCopy(buffer, alreadyCopyCount + offset, this.lastBuffer, this.LastIndex, n);
+                        this.LastIndex += count - alreadyCopyCount;
+                        alreadyCopyCount += n;
+                    }
+                    else
+                    {
+                        Buffer.BlockCopy(buffer, alreadyCopyCount + offset, this.lastBuffer, this.LastIndex, CHUNK_SIZE - this.LastIndex);
+                        alreadyCopyCount += CHUNK_SIZE - this.LastIndex;
+                        this.LastIndex = CHUNK_SIZE;
+                    }
+                }
+            }
         }
 
         public override bool CanRead => throw new NotImplementedException();
