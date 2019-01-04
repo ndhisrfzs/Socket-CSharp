@@ -4,9 +4,8 @@ namespace GameSocket
 {
     public interface ISocketClient : IDisposable
     {
-        int id { get; set; }
         event Action<ISocketClient, int> ErrorCallback;
-        event Action<Packet> ReadCallback;
+        event Action<SocketMessage> ReadCallback;
         void Start();
         void Send(byte[] message);
     }

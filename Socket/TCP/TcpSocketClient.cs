@@ -10,7 +10,7 @@ namespace GameSocket.TCP
         private const int PACKET_SIZE = 2;
 
         public event Action<ISocketClient, int> ErrorCallback;
-        public event Action<Packet> ReadCallback;
+        public event Action<SocketMessage> ReadCallback;
 
         private Socket socket;
         private SocketAsyncEventArgs innArgs = new SocketAsyncEventArgs();
@@ -19,9 +19,9 @@ namespace GameSocket.TCP
         private readonly CircularBuffer recvBuffer = new CircularBuffer();
         private readonly CircularBuffer sendBuffer = new CircularBuffer();
 
-        private PacketParser parser;
+        private SocketMessageParser parser;
 
-        public int id { get; set; }
+        public int Id { get; }
         private ISocketService service;
         private IPEndPoint RemoteAddress;
 
@@ -34,11 +34,11 @@ namespace GameSocket.TCP
 
         public TcpSocketClient(int id, IPEndPoint ipEndPoint, ISocketService service)
         {
-            this.id = id;
+            this.Id = id;
             this.RemoteAddress = ipEndPoint;
             this.service = service;
             this.packetSizeCache = new byte[PACKET_SIZE];
-            this.parser = new PacketParser(recvBuffer);
+            this.parser = new SocketMessageParser(recvBuffer);
 
             this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             this.socket.NoDelay = true;
@@ -51,11 +51,11 @@ namespace GameSocket.TCP
 
         public TcpSocketClient(int id, Socket socket, ISocketService service)
         {
-            this.id = id;
+            this.Id = id;
             this.RemoteAddress = (IPEndPoint)socket.RemoteEndPoint;
             this.service = service;
             this.packetSizeCache = new byte[PACKET_SIZE];
-            this.parser = new PacketParser(recvBuffer);
+            this.parser = new SocketMessageParser(recvBuffer);
 
             this.socket = socket;
             this.socket.NoDelay = true;
@@ -76,9 +76,9 @@ namespace GameSocket.TCP
             this.ErrorCallback?.Invoke(this, (int)e);
         }
 
-        private void OnRead(Packet packet)
+        private void OnRead(SocketMessage message)
         {
-            this.ReadCallback?.Invoke(packet);
+            this.ReadCallback?.Invoke(message);
         }
 
         public void Send(byte[] bytes)

@@ -16,7 +16,7 @@ namespace AppTest
             {
                 client.ReadCallback += (p) =>
                 {
-                    counts[client.id]++;
+                    //counts[client.id]++;
                 };
                 client.Start();
             }

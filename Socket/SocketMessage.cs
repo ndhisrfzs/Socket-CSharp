@@ -7,27 +7,27 @@ namespace GameSocket
         PacketSize,
         PacketBody
     }
-    public class Packet
+    public class SocketMessage 
     {
         public byte[] Bytes { get; }
         public ushort Length { get; set; }
-        public Packet(int length)
+        public SocketMessage(int length)
         {
             this.Length = 0;
             this.Bytes = new byte[length];
         }
     }
 
-    public class PacketParser
+    public class SocketMessageParser
     {
         private readonly CircularBuffer buffer;
 
         private ushort packetSize = 0;
         private ParserState state = ParserState.PacketSize;
-        private Packet packet = new Packet(ushort.MaxValue);
+        private SocketMessage message = new SocketMessage(ushort.MaxValue);
         private bool isOk = false;
 
-        public PacketParser(CircularBuffer buffer)
+        public SocketMessageParser(CircularBuffer buffer)
         {
             this.buffer = buffer;
         }
@@ -52,8 +52,8 @@ namespace GameSocket
                             }
                             else
                             {
-                                this.buffer.Read(this.packet.Bytes, 0, 2);
-                                this.packetSize = BitConverter.ToUInt16(this.packet.Bytes, 0);
+                                this.buffer.Read(this.message.Bytes, 0, 2);
+                                this.packetSize = BitConverter.ToUInt16(this.message.Bytes, 0);
                                 this.state = ParserState.PacketBody;
                             }
                         }
@@ -66,8 +66,8 @@ namespace GameSocket
                             }
                             else
                             {
-                                this.buffer.Read(this.packet.Bytes, 0, this.packetSize);
-                                this.packet.Length = this.packetSize;
+                                this.buffer.Read(this.message.Bytes, 0, this.packetSize);
+                                this.message.Length = this.packetSize;
                                 this.isOk = true;
                                 this.state = ParserState.PacketSize;
                                 finish = true;
@@ -80,10 +80,10 @@ namespace GameSocket
             return this.isOk;
         }
 
-        public Packet GetPacket()
+        public SocketMessage GetPacket()
         {
             this.isOk = false;
-            return this.packet;
+            return this.message;
         }
     }
 }
